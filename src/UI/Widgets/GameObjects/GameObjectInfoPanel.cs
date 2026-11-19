@@ -422,19 +422,9 @@ namespace UnityExplorer.UI.Widgets
             layerToNames = new List<string>();
             for (int i = 0; i < 32; i++)
             {
-                string name = null;
-                try
-                {
-                    name = RuntimeHelper.LayerToName(i);
-                }
-                catch
-                {
-                    // The LayerToName iCall can't be resolved on some Unity versions (eg. Unity 6).
-                    try { name = LayerMask.LayerToName(i); }
-                    catch { /* fall back to the layer number */ }
-                }
-                if (string.IsNullOrEmpty(name))
-                    name = i.ToString();
+                // Layer names are not looked up: on Unity 6 the LayerToName internal call has a different
+                // native signature, and calling it crashes the whole game (an uncatchable SEHException).
+                string name = i.ToString();
                 layerToNames.Add(name);
             }
         }
