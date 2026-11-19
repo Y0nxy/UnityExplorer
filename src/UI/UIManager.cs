@@ -105,6 +105,9 @@ namespace UnityExplorer.UI
             foreach (Dropdown dropdown in UIRoot.GetComponentsInChildren<Dropdown>(true))
                 dropdown.RefreshShownValue();
 
+            // Keep the UI's input actions alive when the game loads a new scene.
+            InputAssetProtector.Protect();
+
             Initializing = false;
 
             if (ConfigManager.Hide_On_Startup.Value)
