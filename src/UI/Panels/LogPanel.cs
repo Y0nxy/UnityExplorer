@@ -98,8 +98,18 @@ namespace UnityExplorer.UI.Panels
 
         private static void OpenLogFile()
         {
-            if (File.Exists(CurrentStreamPath))
-                Process.Start(CurrentStreamPath);
+            if (!File.Exists(CurrentStreamPath))
+                return;
+
+            try
+            {
+                // UseShellExecute must be true on .NET Core / .NET 6 to open a file with its default app.
+                Process.Start(new ProcessStartInfo(CurrentStreamPath) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                ExplorerCore.LogWarning($"Unable to open the log file: {ex.Message}");
+            }
         }
 
         // Cell pool

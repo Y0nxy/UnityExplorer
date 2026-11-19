@@ -36,22 +36,34 @@ internal static class InputAssetProtector
             if (typedModule == null)
                 return;
 
+            Type? refType = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputActionReference");
+
             int protectedCount = 0;
             foreach (string propertyName in actionProperties)
             {
-                object? value = moduleType.GetProperty(propertyName, Flags)?.GetValue(typedModule, null);
-                protectedCount += ProtectObject(value);
-
-                // InputActionReference -> also keep the asset it points to alive.
-                if (value != null)
+                try
                 {
-                    Type? refType = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputActionReference");
-                    if (refType != null)
+                    PropertyInfo? property = moduleType.GetProperty(propertyName, Flags);
+                    if (property == null)
+                        continue;
+
+                    object? value = property.GetValue(typedModule, null);
+                    protectedCount += ProtectObject(value);
+
+                    // InputActionReference -> also keep the asset it points to alive.
+                    if (value != null && refType != null)
                     {
                         object? typedRef = value.TryCast(refType);
-                        object? asset = refType.GetProperty("asset", Flags)?.GetValue(typedRef, null);
-                        protectedCount += ProtectObject(asset);
+                        if (typedRef != null && refType.IsInstanceOfType(typedRef))
+                        {
+                            object? asset = refType.GetProperty("asset", Flags)?.GetValue(typedRef, null);
+                            protectedCount += ProtectObject(asset);
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    ExplorerCore.LogWarning($"Unable to protect input property '{propertyName}': {ex.Message}");
                 }
             }
 
